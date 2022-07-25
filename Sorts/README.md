@@ -13,7 +13,48 @@ fn bubble_sort(data: &mut Vec<i32>) {
     }
 }
 ```
+**OR**
+```assembly
+// void bubble_sort(int *x, int n)
+//                    r0      r1
 
+.global bubble_sort
+bubble_sort:
+	push {r4, r5, r6, r7, r8, r9}
+	mov r2, #-1 // i
+loop1:
+	add r2, #1
+	cmp r2, r1
+	beq end
+	mov r3, #-1 // j
+	mov r4, r1
+	sub r4, r2
+	sub r4, #1
+loop2:
+	add r3, #1
+	cmp r3, r4
+	beq loop1
+	mov r5, r3
+	add r5, #1
+	mov r6, #4
+	mul r6, r3
+	mov r7, r6
+	add r7, #4
+	ldr r8, [r0, r6]
+	ldr r9, [r0, r7]
+	cmp r8, r9
+	bgt swap
+	b loop2
+
+swap:
+	str r8, [r0, r7]
+	str r9, [r0, r6]
+	b loop2
+	
+end:
+	pop {r4, r5, r6, r7, r8, r9}
+	bx lr
+```
 ## Selection sort
 ```rust
 fn selection_sort(data: &mut Vec<i32>) {
@@ -32,6 +73,60 @@ fn selection_sort(data: &mut Vec<i32>) {
     }
 }
 ```
+**OR**
+```assembly
+// void selection_sort(int *x, int n)
+//                       r0      r1
+
+
+.global selection_sort
+selection_sort:
+	mov r3, #-1
+	push {r4, r5, r6, r7, r8, r9}
+	mov r5, #-1
+loop1:
+	mov r4, r3
+	add r3, #1
+	cmp r3, r1
+	beq end
+loop2:
+	add r4, #1
+	cmp r4, r1
+	beq swap
+	cmp r5, #-1
+	beq change_index
+	mov r6, #4
+	mul r6, r4
+	mov r7, #4
+	mul r7, r5
+	ldr r8, [r0, r6]
+	ldr r9, [r0, r7]
+	cmp r8, r9
+	blt change_index
+	b loop2
+	
+swap:
+	mov r6, #4
+	mul r6, r3
+	ldr r8, [r0, r6]
+	mov r7, #4
+	mul r7, r5
+	ldr r9, [r0, r7]
+	str r8, [r0, r7]
+	str r9, [r0, r6]
+	mov r5, #-1
+	b loop1
+	
+
+change_index:
+	mov r5, r4
+	b loop2
+
+end:
+	pop {r4, r5, r6, r7, r8, r9}
+	bx lr
+```
+
 ## Insertion sort
 ```rust
 fn insertion_sort(data: &mut Vec<i32>) {
@@ -48,7 +143,7 @@ fn insertion_sort(data: &mut Vec<i32>) {
 }
 ```
 **OR**
-```armasm
+```assembly
 // void insertion_sort(int *x, int n)
 //			r0
 
@@ -89,6 +184,8 @@ end:
 #include <stdio.h>
 #include <stdlib.h>
 
+void bubble_sort(int *x, int n);
+void selection_sort(int *x, int n);
 void insertion_sort(int *x, int n);
 
 int main() {
@@ -96,35 +193,52 @@ int main() {
 	scanf("%d", &n);
 	
 
-	int *x = malloc(sizeof(int) * n);
-	if (!x) {
+	int *x_for_bubble = malloc(sizeof(int) * n);
+	int *x_for_selection = malloc(sizeof(int) * n);
+	int *x_for_insertion = malloc(sizeof(int) * n);
+	if (!x_for_bubble || !x_for_selection || !x_for_insertion) {
 		printf("Failed to alloc mem");
 		return -1;
 	}
 
 	for (int i = 0; i < n; ++i) {
-		scanf("%d", &x[i]);
+		scanf("%d", &x_for_bubble[i]);
+		x_for_selection[i] = x_for_bubble[i];
+		x_for_insertion[i] = x_for_bubble[i];
 	}
 
-	insertion_sort(x, n);
+	bubble_sort(x_for_bubble, n);
+	selection_sort(x_for_selection, n);
+	insertion_sort(x_for_insertion, n);
 
-	printf("Sorted array: ");
+	printf("Bubble sort: ");
 	for (int i = 0; i < n; ++i) {
-		printf("%d ", x[i]);
+		printf("%d ", x_for_bubble[i]);
 	}
 
-	free(x);
+	printf("\nSelection sort: ");
+	for (int i = 0; i < n; ++i) {
+		printf("%d ", x_for_selection[i]);
+	}
 
+	printf("\nInsertion sort: ");
+	for (int i = 0; i < n; ++i) {
+		printf("%d ", x_for_insertion[i]);
+	}	
+
+	free(x_for_bubble);
+	free(x_for_selection);
+	free(x_for_insertion);
 	return 0;
 }
 ```
 **Build**
 ```shell
-arm-linux-gnueabi-gcc-${VERSION} -marm insertion_sort.S insertion_sort.c -o insertion_sort
+arm-linux-gnueabi-gcc-${VERSION} -marm bubble_sort.S selection_sort.S insertion_sort.S sorts.c -o sorts
 ```
 **Run**
 ```shell
-qemu-arm-static -L ${PATH_TO_LINARO} insertion_sort
+qemu-arm-static -L ${PATH_TO_LINARO} sorts
 ```
 ## Merge sort
 ```cpp
