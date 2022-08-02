@@ -46,3 +46,25 @@ bool binary_search(Iter begin, Iter end, const typename Iter::value_type &value)
     }
 }
 ```
+
+## Greatest increasing sequence
+```cpp
+template<typename T>
+std::pair<std::vector<T>, std::vector<size_t>> gis(const std::vector<T>& data) {
+    std::vector<T> f(data.size());
+    std::vector<size_t> p(data.size());
+    for (size_t i = 0; i < data.size(); ++i) {
+        f[i] = 1;
+        p[i] = -1;
+        for (size_t j = 0; j < i; ++j) {
+            if (data[j] < data[i]) {
+                if (f[i] < f[j] + 1) {
+                    f[i] = f[j] + 1;
+                    p[i] = j;
+                }
+            }
+        }
+    }
+    return { f, p };
+}
+```
