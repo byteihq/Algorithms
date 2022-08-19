@@ -214,3 +214,103 @@ ListNode* detectCycle(ListNode* head)
     return s;
 }
 ```
+[Remove Nth Node From End of List](https://leetcode.com/problems/remove-nth-node-from-end-of-list/)
+```cpp
+class Solution
+{
+public:
+    ListNode *removeNthFromEnd(ListNode *head, int n)
+    {
+        if (!head->next)
+        {
+            return nullptr;
+        }
+        std::deque<ListNode *> deq;
+        size_t size = 0;
+        for (auto *current = head; current; current = current->next)
+        {
+            deq.push_back(current);
+            if (deq.size() > n + 1)
+            {
+                deq.pop_front();
+            }
+            ++size;
+        }
+        if (size == n)
+        {
+            head = head->next;
+        }
+        else
+        {
+            deq.front()->next = deq.size() > 2 ? deq[2] : nullptr;
+        }
+        return head;
+    }
+};
+```
+[Swapping Nodes in a Linked List](https://leetcode.com/problems/swapping-nodes-in-a-linked-list/)
+```cpp
+class Solution
+{
+public:
+    ListNode *swapNodes(ListNode *head, int k)
+    {
+        if (!head->next)
+        {
+            return head;
+        }
+        std::deque<ListNode *> deq;
+        size_t size = 0;
+        ListNode *leftNode = head;
+        for (auto *current = head; current; current = current->next)
+        {
+            deq.push_back(current);
+            if (deq.size() > k)
+            {
+                deq.pop_front();
+            }
+            ++size;
+            if (size == k)
+            {
+                leftNode = current;
+            }
+        }
+        std::swap(leftNode->val, deq.front()->val);
+        return head;
+    }
+};
+```
+[Swap Nodes in Pairs](https://leetcode.com/problems/swap-nodes-in-pairs/)
+```cpp
+class Solution
+{
+public:
+    ListNode *swapPairs(ListNode *head)
+    {
+        if (!head || !head->next)
+        {
+            return head;
+        }
+        ListNode *prev = nullptr;
+        ListNode *current = head;
+        ListNode *next = head->next;
+        head = head->next;
+        while (current && next)
+        {
+            if (prev)
+            {
+                prev->next = next;
+            }
+            current->next = next->next;
+            next->next = current;
+            prev = current;
+            current = current->next;
+            if (current)
+            {
+                next = current->next;
+            }
+        }
+        return head;
+    }
+};
+```
